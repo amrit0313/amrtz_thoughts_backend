@@ -18,7 +18,7 @@ import { FacebookStrategy } from './facebook.strategy';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, FacebookStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, ], //FacebookStrategy
   controllers: [AuthController],
 })
 export class AuthModule {}

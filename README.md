@@ -1,98 +1,167 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend Overview (NestJS + PostgreSQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This backend is a NestJS API with JWT auth and OAuth (Google/Facebook). It uses TypeORM with PostgreSQL and auto-loads entities. The current AppModule only registers the Auth module and the root controller, so only `/` and `/auth/*` routes are active by default.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Base URL: `http://localhost:3001` (configurable via `PORT`)
 
-## Description
+## Runtime Behavior
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **CORS**: enabled for `http://localhost:3000` and `http://localhost:3001`, `credentials: true`.
+- **Serialization**: `ClassSerializerInterceptor` is enabled globally (excludes `passwordHash`).
+- **Database**: `DATABASE_URL` with SSL (`rejectUnauthorized: false`), `synchronize: true`.
 
-## Project setup
+## Environment Variables
 
-```bash
-$ npm install
+Required/used in code:
+
+- `DATABASE_URL` — PostgreSQL connection string.
+- `PORT` — server port (defaults to `3001`).
+- `FRONTEND_URL` — redirect target after OAuth.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OAuth.
+- `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` — Facebook OAuth.
+- `FACEBOOK_CALLBACK_URL` — optional override; defaults to `http://localhost:3001/auth/facebook/callback`.
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Cloudinary uploads.
+
+## Auth & Security
+
+- **JWT**: Bearer token is expected in `Authorization` header for protected endpoints.
+- **Important**: `JwtStrategy` uses secret `SECRET_KEY` while `JwtModule` signs with `secretKey`. This mismatch will cause `JwtAuthGuard` validation to fail unless aligned.
+
+## Data Model (TypeORM Entities)
+
+### User
+- `id: number`
+- `email: string`
+- `genre: Genre` (enum; default `comedy`)
+- `profilePic: string` (non-nullable)
+- `passwordHash: string | null` (excluded from serialization)
+- `name?: string`
+- `thoughts: Thoughts[]`
+
+### Thoughts
+- `id: number`
+- `thought: string`
+- `user: User` (many-to-one)
+- `likes: ThoughtLike`
+- `shares: ThoughtShare`
+- `likeCount: number` (default `0`)
+- `shareCount: number` (default `0`)
+
+### ThoughtLike
+- `id: uuid`
+- `user: User`
+- `thought: Thoughts`
+- `createdAt: Date`
+
+### ThoughtShare
+- `id: uuid`
+- `user: User`
+- `thought: Thoughts`
+- `createdAt: Date`
+
+### Friendships
+- `id: number`
+- `sender: User`
+- `receiver: User`
+- `status: FriendshipStatus` (`pending | accepted | declined | blocked | unfriended`)
+- `createdAt: Date`
+- `updatedAt: Date`
+
+## Active API Endpoints
+
+These are the endpoints actually registered by `AppModule` and reachable at runtime.
+
+### GET /
+**Auth**: none  
+**Response**: `"Hello World!"`
+
+### POST /auth/signup
+**Auth**: none  
+**Body (JSON)**:
+```json
+{ "email": "user@example.com", "password": "plaintext-password" }
+```
+**Response**:
+```json
+{ "user": { "...User" }, "access_token": "jwt" }
+```
+Notes:
+- Creates a user with `passwordHash`.
+- Returned `user` is a `User` entity (passwordHash excluded by serializer).
+
+### POST /auth/login
+**Auth**: none  
+**Body (JSON)**:
+```json
+{ "email": "user@example.com", "password": "plaintext-password" }
+```
+**Response**:
+```json
+{ "access_token": "jwt", "user": { "...User" } }
 ```
 
-## Compile and run the project
+### GET /auth/google
+**Auth**: none  
+**Behavior**: starts Google OAuth flow (redirect via Passport).
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+### GET /auth/google/callback
+**Auth**: none (Passport handles)  
+**Behavior**: exchanges Google profile for a local user and redirects to:
+```
+${FRONTEND_URL}/auth/google/callback?token=<jwt>&user=<urlencoded_user_json>
+```
+On error:
+```
+${FRONTEND_URL}/login?error=auth_failed
 ```
 
-## Run tests
+### GET /auth/facebook
+**Auth**: none  
+**Behavior**: starts Facebook OAuth flow (redirect via Passport).
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### GET /auth/facebook/callback
+**Auth**: none (Passport handles)  
+**Behavior**: exchanges Facebook profile for a local user and redirects to:
+```
+${FRONTEND_URL}/login?token=<jwt>&user=<urlencoded_user_json>&provider=facebook
+```
+On error:
+```
+${FRONTEND_URL}/login?error=auth_failed&provider=facebook
 ```
 
-## Deployment
+### GET /auth/ano
+**Auth**: none  
+**Response**: `"hey there"`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### GET /auth/me
+**Auth**: `Authorization: Bearer <jwt>`  
+**Response**: `{ "userId": number, "email": string }`  
+**Note**: This uses `JwtStrategy` and will fail unless the JWT secret mismatch is fixed.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Declared but Not Wired (Not Active at Runtime)
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+The following controllers and modules exist in the codebase but are **not registered** in `AppModule` or their own module and therefore are not reachable unless wired in:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### UsersController (not registered in `UserModule`)
+Routes:
+- `PATCH /users/profile` — expects `multipart/form-data` with:
+  - file field `profilePic` (jpeg/png/webp, max 5MB)
+  - optional body fields from `UpdateProfileDto` (`name`, `email`, `password`, `genre`)
+- `GET /users` — list users excluding current user
 
-## Resources
+Both routes require `Authorization: Bearer <jwt>` via `JwtAuthGuard`.
 
-Check out a few resources that may come in handy when working with NestJS:
+### ThoughtsModule / FriendshipsModule
+Both controllers are empty and modules are not imported into `AppModule`. No routes are exposed.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Cloudinary Uploads (Used by UsersController)
 
-## Support
+`CloudinaryService.uploadImage(file)` uploads to `profile-pics` folder and returns `secure_url`.  
+**Note**: `UserService` depends on `CloudinaryService`, but `UserModule` does not import `CloudinaryModule`, so DI will fail if `UsersController` is enabled without fixing imports.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Frontend Integration Notes
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Use `Authorization: Bearer <token>` for protected calls.
+- OAuth is redirect-based. Frontend should parse `token` and `user` query params from redirect URL.
+- Default API port is `3001`, and CORS allows `http://localhost:3000`.

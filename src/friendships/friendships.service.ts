@@ -26,11 +26,24 @@ export class FriendshipService {
       throw new Error('friend request already pending');
     }
     const friendships = this.repo.create({
-        sender,
-        receiver,
-        status:FriendshipStatus.PENDING
+      sender,
+      receiver,
+      status: FriendshipStatus.PENDING,
     });
-    return this.repo.save(friendships)
+    return this.repo.save(friendships);
+  }
 
+  async acceptRequest(currentUser: User, sender: User) {
+    const friendship = await this.repo.findOne({
+      where: {
+        receiver: { id: currentUser.id },
+        sender: { id: sender.id },
+        status: FriendshipStatus.PENDING,
+      },
+    });
+    if (!friendship) throw new Error('Friendship doesnt exist');
+
+    friendship.status = FriendshipStatus.ACCEPTED;
+    return this.repo.save(friendship);
   }
 }

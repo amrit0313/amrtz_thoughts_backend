@@ -52,26 +52,26 @@ export class AuthController {
     }
   }
 
-  @Get('facebook')
-  @UseGuards(AuthGuard('facebook'))
-  facebookAuth() {}
+  // @Get('facebook')
+  // @UseGuards(AuthGuard('facebook'))
+  // facebookAuth() {}
 
-  @Get('facebook/callback')
-  @UseGuards(AuthGuard('facebook'))
-  async facebookCallback(@Req() req: Request, @Res() res: Response) {
-    try {
-      const result = await this.AuthService.oauthLogin(req.user);
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-      const userParam = encodeURIComponent(JSON.stringify(result.user));
+  // @Get('facebook/callback')
+  // @UseGuards(AuthGuard('facebook'))
+  // async facebookCallback(@Req() req: Request, @Res() res: Response) {
+  //   try {
+  //     const result = await this.AuthService.oauthLogin(req.user);
+  //     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+  //     const userParam = encodeURIComponent(JSON.stringify(result.user));
 
-      res.redirect(
-        `${frontendUrl}/login?token=${result.access_token}&user=${userParam}&provider=facebook`,
-      );
-    } catch {
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-      res.redirect(`${frontendUrl}/login?error=auth_failed&provider=facebook`);
-    }
-  }
+  //     res.redirect(
+  //       `${frontendUrl}/login?token=${result.access_token}&user=${userParam}&provider=facebook`,
+  //     );
+  //   } catch {
+  //     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+  //     res.redirect(`${frontendUrl}/login?error=auth_failed&provider=facebook`);
+  //   }
+  // }
 
   @Get('ano')
   View() {

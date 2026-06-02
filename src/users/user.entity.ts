@@ -1,7 +1,7 @@
 //user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Thoughts } from 'src/thoughts/thoughts.entity';
+import { Thoughts } from 'src/thoughts/entities/thoughts.entity';
 import { Genre } from './enums/user.enums';
 @Entity()
 export class User {
@@ -12,11 +12,14 @@ export class User {
   email!: string;
 
   @Column({
-    type:'enum',
-    enum:Genre,
-    default:Genre.COMEDY
+    type: 'enum',
+    enum: Genre,
+    default: Genre.COMEDY,
   })
-  genre!:Genre
+  genre!: Genre;
+
+  @Column({ nullable: true })
+  profilePic?: string;
 
   @Column({ nullable: true })
   @Exclude()
@@ -25,6 +28,6 @@ export class User {
   @Column({ nullable: true })
   name?: string;
 
-  @OneToMany(()=>Thoughts, thoughts=>thoughts.user)
-  thoughts!:Thoughts[]
+  @OneToMany(() => Thoughts, (thoughts) => thoughts.user)
+  thoughts!: Thoughts[];
 }

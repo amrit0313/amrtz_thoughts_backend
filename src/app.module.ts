@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThoughtsModule } from './thoughts/thoughts.module';
 
 @Module({
   imports: [
@@ -17,14 +18,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: true, // safer default
+        synchronize: false,
         ssl: {
           rejectUnauthorized: false,
         },
       }),
     }),
     UserModule,
-    AuthModule,
+    ThoughtsModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
