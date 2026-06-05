@@ -12,6 +12,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Response, Request } from 'express';
 import { JwtAuthGuard } from '../common/guard/jwt-auth.guard';
+import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,12 +23,12 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  signup(@Body() body: { email: string; password: string }) {
+  signup(@Body() body: SignupDto) {
     return this.AuthService.signup(body.email, body.password);
   }
 
   @Post('login')
-  login(@Body() body: { email: string; password: string }) {
+  login(@Body() body: LoginDto) {
     return this.AuthService.login(body.email, body.password);
   }
 

@@ -1,12 +1,14 @@
 // users/users.controller.ts
 import {
+  BadRequestException,
   Controller,
-  Patch,Get,
+  Patch,
+  Get,
   Body,
   UploadedFile,
   UseInterceptors,
   UseGuards,
-  Req
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/common/guard/jwt-auth.guard';
@@ -25,7 +27,10 @@ export class UsersController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
-          return cb(new Error('Only jpg/png/webp allowed'), false);
+          return cb(
+            new BadRequestException('Only jpg/png/webp allowed'),
+            false,
+          );
         }
         cb(null, true);
       },

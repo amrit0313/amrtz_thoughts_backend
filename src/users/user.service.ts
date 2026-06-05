@@ -1,6 +1,6 @@
 //user.services.ts
 
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -63,7 +63,7 @@ export class UserService {
     }
 
     const id = Number(userId);
-    if (Number.isNaN(id)) throw new Error('Invalid user id');
+    if (Number.isNaN(id)) throw new BadRequestException('Invalid user id');
 
     await this.repo.update(id, updates);
     return this.repo.findOne({ where: { id } });
