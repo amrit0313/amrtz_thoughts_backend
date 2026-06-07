@@ -8,12 +8,15 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Genre } from './enums/user.enums';
 import { Not } from 'typeorm';
+import { Friendships } from 'src/friendships/friendships.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private repo: Repository<User>,
+    @InjectRepository(Friendships)
+    private friendshipRepo: Repository<Friendships>,
     private cloudinaryService: CloudinaryService,
   ) {}
 
@@ -34,8 +37,15 @@ export class UserService {
     return await this.repo.findOne({ where: { email } });
   }
 
-  async findById(id: number) {
-    return await this.repo.findOne({ where: { id } });
+  async findById(currentUserId: number, id: number) {
+    const user = await this.repo.findOne({ where: { id } });
+    const friendship = await this.friendshipRepo.findOne({
+      where: [
+        { sender: { id: currentUserId }, receiver: { id } },
+        { receiver: { id: currentUserId }, sender: { id } },
+      ],
+    });
+    return { user, friendship };
   }
   async createUserFromOAuth(data: { email: string; name: string }) {
     const user = this.repo.create({
@@ -55,6 +65,8 @@ export class UserService {
 
     if (file) {
       const result = await this.cloudinaryService.uploadImage(file);
+      console.log('downside cloud');
+
       updates.profilePic = result.secure_url;
     }
 

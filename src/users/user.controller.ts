@@ -9,6 +9,8 @@ import {
   UseInterceptors,
   UseGuards,
   Req,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/common/guard/jwt-auth.guard';
@@ -20,11 +22,17 @@ import { Request } from 'express';
 export class UsersController {
   constructor(private readonly usersService: UserService) {}
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findUser(@Req() req, @Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findById(req.id, id);
+  }
+
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('profilePic', {
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
+      limits: { fileSize: 10 * 1024 * 1024 }, // 5 MB cap
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
           return cb(
@@ -38,10 +46,11 @@ export class UsersController {
   )
   async updateProfile(
     @Req() req,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() profilePic: Express.Multer.File,
     @Body() dto: UpdateProfileDto,
   ) {
-    return this.usersService.updateProfile(req.user.id, dto, file);
+    console.log('it came here');
+    return this.usersService.updateProfile(req.user.id, dto, profilePic);
   }
 
   @Get()

@@ -6,6 +6,7 @@ import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThoughtsModule } from './thoughts/thoughts.module';
+import { FriendshipModule } from './friendships/friendships.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { ThoughtsModule } from './thoughts/thoughts.module';
     }),
     UserModule,
     ThoughtsModule,
-    AuthModule
+    AuthModule,
+    FriendshipModule,
   ],
   controllers: [AppController],
   providers: [AppService],

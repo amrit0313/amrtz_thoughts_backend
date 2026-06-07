@@ -4,7 +4,7 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { FriendshipStatus } from './enums/status.enums';

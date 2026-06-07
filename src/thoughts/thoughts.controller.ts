@@ -21,6 +21,11 @@ export class ThoughtsController {
   async getThoughts() {
     return this.thoughtService.getThoughts();
   }
+  @Get('user/:id')
+  @UseGuards(JwtAuthGuard)
+  async getUsersThoughts(@Param('id', ParseIntPipe) id: number) {
+    return this.thoughtService.getUsersThought(id);
+  }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)

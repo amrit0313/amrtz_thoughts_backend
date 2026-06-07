@@ -58,6 +58,15 @@ export class ThoughtService {
     });
   }
 
+  async getUsersThought(id: number) {
+    return await this.repo.find({
+      where: {
+        user: { id },
+      },
+      relations: { user: true },
+    });
+  }
+
   //   async like(user: User, thought: Thoughts) {
   //     const thoughts = this.repo.findOne({ where: { id: thought.id } });
   //     if (!thought) throw new NotFoundException("Didn't find  thought");
