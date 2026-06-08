@@ -78,11 +78,11 @@ export class FriendshipService {
     };
   }
 
-  async acceptRequest(currentUser: number, sender: number) {
+  async acceptRequest(currentUser: number, friendshipId: number) {
     const friendship = await this.repo.findOne({
       where: {
+        id:friendshipId,
         receiver: { id: currentUser },
-        sender: { id: sender },
         status: FriendshipStatus.PENDING,
       },
     });

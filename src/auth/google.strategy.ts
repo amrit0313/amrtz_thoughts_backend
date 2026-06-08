@@ -26,7 +26,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       email: profile.emails[0].value,
       name: profile.displayName,
       profile: profile,
-      provider: 'google',
+      provider: 'google', 
       providerId: profile.id,
     };
     console.log(user);
