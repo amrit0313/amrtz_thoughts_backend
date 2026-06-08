@@ -1,6 +1,5 @@
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from 'src/users/user.module';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
@@ -13,9 +12,13 @@ import { FacebookStrategy } from './facebook.strategy';
   imports: [
     ConfigModule,
     UserModule, // 🔥 needed so you can use UserService
-    JwtModule.register({
-      secret: 'secretKey',
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' },
+      }),
     }),
   ],
   providers: [AuthService, JwtStrategy, GoogleStrategy, ], //FacebookStrategy

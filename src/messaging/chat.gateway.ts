@@ -32,11 +32,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket) {
     try {
       const token = client.handshake.auth.token;
+      console.log(token)
       const payload = this.jwtService.verify(token);
       client.data.user = payload;
       this.connectedUsers.set(payload.sub, client.id);
       console.log(`User ${payload.sub} connected — socket ${client.id}`);
-    } catch {
+    } catch (err) {
+        console.log('socket auth failed:', err.message);
       client.disconnect();
     }
   }
