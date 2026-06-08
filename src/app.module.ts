@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThoughtsModule } from './thoughts/thoughts.module';
 import { FriendshipModule } from './friendships/friendships.module';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { FriendshipModule } from './friendships/friendships.module';
     ThoughtsModule,
     AuthModule,
     FriendshipModule,
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
